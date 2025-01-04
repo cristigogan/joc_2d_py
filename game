@@ -1,0 +1,121 @@
+import pygame
+import sys
+
+# Inițializăm pygame
+pygame.init()
+
+# Dimensiunile ferestrei
+WIDTH, HEIGHT = 800, 400
+SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Fighting Game - Mortal Kombat Style")
+
+# Culori
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+
+# FPS
+FPS = 60
+clock = pygame.time.Clock()
+
+# Dimensiuni și poziții jucători
+PLAYER_SPEED = 5
+PLAYER1_START = (100, HEIGHT - 110)
+PLAYER2_START = (WIDTH - 150, HEIGHT - 110)
+
+# Sănătate
+PLAYER1_HEALTH = 100
+PLAYER2_HEALTH = 100
+
+# Resurse
+player1_image = pygame.image.load("player1.png")  # Imaginea pentru Player 1
+player1_image = pygame.transform.scale(player1_image, (50, 100))
+
+player2_image = pygame.image.load("player2.png")  # Imaginea pentru Player 2
+player2_image = pygame.transform.scale(player2_image, (50, 100))
+
+# Jucători
+player1 = pygame.Rect(*PLAYER1_START, 50, 100)
+player2 = pygame.Rect(*PLAYER2_START, 50, 100)
+
+# Funcții pentru desenare
+def draw_window():
+    SCREEN.fill(BLACK)
+    
+    # Bare de sănătate
+    pygame.draw.rect(SCREEN, RED, (20, 20, PLAYER1_HEALTH * 2, 20))
+    pygame.draw.rect(SCREEN, BLUE, (WIDTH - 220, 20, PLAYER2_HEALTH * 2, 20))
+
+    # Jucători
+    SCREEN.blit(player1_image, (player1.x, player1.y))
+    SCREEN.blit(player2_image, (player2.x, player2.y))
+
+    pygame.display.flip()
+
+# Coliziuni și atacuri
+def handle_collision():
+    global PLAYER1_HEALTH, PLAYER2_HEALTH
+
+    if player1.colliderect(player2):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_q]:  # Atac ușor player 1
+            PLAYER2_HEALTH -= 1
+        if keys[pygame.K_w]:  # Atac greu player 1
+            PLAYER2_HEALTH -= 3
+        if keys[pygame.K_KP1]:  # Atac ușor player 2
+            PLAYER1_HEALTH -= 1
+        if keys[pygame.K_KP2]:  # Atac greu player 2
+            PLAYER1_HEALTH -= 3
+
+# Mișcări jucători
+def handle_movement(keys):
+    # Player 1
+    if keys[pygame.K_a] and player1.x - PLAYER_SPEED > 0:
+        player1.x -= PLAYER_SPEED
+    if keys[pygame.K_d] and player1.x + PLAYER_SPEED + player1.width < WIDTH:
+        player1.x += PLAYER_SPEED
+    if keys[pygame.K_w]:  # Săritură
+        player1.y -= 10
+    if player1.y < HEIGHT - player1.height - 10:
+        player1.y += 5
+
+    # Player 2
+    if keys[pygame.K_LEFT] and player2.x - PLAYER_SPEED > 0:
+        player2.x -= PLAYER_SPEED
+    if keys[pygame.K_RIGHT] and player2.x + PLAYER_SPEED + player2.width < WIDTH:
+        player2.x += PLAYER_SPEED
+    if keys[pygame.K_UP]:  # Săritură
+        player2.y -= 10
+    if player2.y < HEIGHT - player2.height - 10:
+        player2.y += 5
+
+# Bucla principală
+def main():
+    global PLAYER1_HEALTH, PLAYER2_HEALTH
+    running = True
+
+    while running:
+        clock.tick(FPS)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        keys = pygame.key.get_pressed()
+        handle_movement(keys)
+        handle_collision()
+
+        draw_window()
+
+        # Verificare câștigător
+        if PLAYER1_HEALTH <= 0 or PLAYER2_HEALTH <= 0:
+            winner = "Player 1" if PLAYER2_HEALTH <= 0 else "Player 2"
+            print(f"{winner} a câștigat!")
+            running = False
+
+    pygame.quit()
+    sys.exit()
+
+if __name__ == "__main__":
+    main()
